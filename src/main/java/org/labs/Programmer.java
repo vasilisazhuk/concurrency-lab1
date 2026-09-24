@@ -2,12 +2,15 @@ package org.labs;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Programmer implements  Runnable {
 
     private static final AtomicInteger totalPortionsLeft = new AtomicInteger(100);
     private Object leftSpoon;
     private Object rightSpoon;
+
+    //private final ReentrantLock lockForks = new ReentrantLock(true);
 
     private static Semaphore waiters = new Semaphore(2, true);
     public Programmer(Object leftSpoon, Object rightSpoon) {
@@ -28,18 +31,19 @@ public class Programmer implements  Runnable {
     }
 
     private void takeMeal() throws InterruptedException {
-        waiters.release();
+
         doAction(Thread.currentThread().getName() + ": Take meal from waiter");
+        waiters.release();
     }
 
     @Override
     public void run(){
         try {
-            //tutorial
             while (true) {
                 doAction(System.nanoTime() + ": Thinking");
                 if (totalPortionsLeft.get() <= 0) break;
                 orderMeal();
+
                 synchronized (leftSpoon) {
                     doAction(System.nanoTime() + ": Picked left spoon");
                     synchronized (rightSpoon) {

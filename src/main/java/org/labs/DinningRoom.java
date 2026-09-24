@@ -17,8 +17,7 @@ public class DinningRoom {
 
             Thread t = new Thread(programmers[i], "Programmer " + (i + 1));
             t.start();
-
         }
-
     }
 }
+
