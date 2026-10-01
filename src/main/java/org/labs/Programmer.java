@@ -22,7 +22,7 @@ public class Programmer implements  Runnable {
         System.out.println(
                 Thread.currentThread().getName() + " " + action
         );
-        Thread.sleep((int) ( ThreadLocalRandom.current().nextInt()  * 100));
+        Thread.sleep((int) ( ThreadLocalRandom.current().nextInt(100)));
     }
 
     private void orderMeal() throws InterruptedException {
