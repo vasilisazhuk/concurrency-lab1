@@ -43,6 +43,7 @@ public class Programmer implements  Runnable {
                 doAction(System.nanoTime() + ": Thinking");
                 if (totalPortionsLeft.get() <= 0) break;
                 orderMeal();
+                try {
                 if (leftSpoon.tryLock()){
                     try {
                         doAction(System.nanoTime() + ": Picked left spoon");
@@ -52,6 +53,7 @@ public class Programmer implements  Runnable {
                                 if (remaining >= 0) {
                                     doAction(System.nanoTime() + ": Picked right spoon. Portions left: " + totalPortionsLeft.get());
                                 } else {
+                                    //waiters.release();
                                     break;
                                 }
                                 //totalPortionsLeft.compareAndSet(remaining, remaining - 1);
@@ -66,7 +68,11 @@ public class Programmer implements  Runnable {
                     }
 
                 }
-                takeMeal();
+
+            } finally {
+                    //чтобы отпустить семафор
+                    takeMeal();
+                }
             }
         } catch (InterruptedException e) {
             //throw new RuntimeException(e);
