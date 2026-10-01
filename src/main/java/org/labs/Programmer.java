@@ -1,6 +1,7 @@
 package org.labs;
 
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -21,7 +22,7 @@ public class Programmer implements  Runnable {
         System.out.println(
                 Thread.currentThread().getName() + " " + action
         );
-        Thread.sleep((int) (Math.random() * 100));
+        Thread.sleep((int) ( ThreadLocalRandom.current().nextInt()  * 100));
     }
 
     private void orderMeal() throws InterruptedException {
