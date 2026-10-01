@@ -7,13 +7,12 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Programmer implements  Runnable {
 
     private static final AtomicInteger totalPortionsLeft = new AtomicInteger(100);
-    private Object leftSpoon;
-    private Object rightSpoon;
+    private ReentrantLock leftSpoon;
+    private ReentrantLock rightSpoon;
 
-    //private final ReentrantLock lockForks = new ReentrantLock(true);
 
     private static Semaphore waiters = new Semaphore(2, true);
-    public Programmer(Object leftSpoon, Object rightSpoon) {
+    public Programmer(ReentrantLock leftSpoon, ReentrantLock rightSpoon) {
         this.leftSpoon = leftSpoon;
         this.rightSpoon = rightSpoon;
     }
@@ -43,19 +42,28 @@ public class Programmer implements  Runnable {
                 doAction(System.nanoTime() + ": Thinking");
                 if (totalPortionsLeft.get() <= 0) break;
                 orderMeal();
-
-                synchronized (leftSpoon) {
-                    doAction(System.nanoTime() + ": Picked left spoon");
-                    synchronized (rightSpoon) {
-                        int remaining = totalPortionsLeft.get();
-                        //if (remaining <= 0) break;
-                        if (remaining > 0 &&
-                                totalPortionsLeft.compareAndSet(remaining, remaining - 1)){
-                            doAction(System.nanoTime() + ": Picked right spoon - eating. Portions left: " + remaining);
-                            doAction(System.nanoTime() + ": Put down right spoon");
+                if (leftSpoon.tryLock()){
+                    try {
+                        doAction(System.nanoTime() + ": Picked left spoon");
+                        if (rightSpoon.tryLock()){
+                            try {
+                                int remaining = totalPortionsLeft.decrementAndGet();
+                                if (remaining >= 0) {
+                                    doAction(System.nanoTime() + ": Picked right spoon. Portions left: " + totalPortionsLeft.get());
+                                } else {
+                                    break;
+                                }
+                                //totalPortionsLeft.compareAndSet(remaining, remaining - 1);
+                            } finally {
+                                doAction(System.nanoTime() + ": Put down right spoon");
+                                rightSpoon.unlock();
+                            }
                         }
+                    } finally {
+                        doAction(System.nanoTime() + ": Put down left spoon, back to thinking");
+                        leftSpoon.unlock();
                     }
-                    doAction(System.nanoTime() + ": Put down left spoon. Back to thinking");
+
                 }
                 takeMeal();
             }
